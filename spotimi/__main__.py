@@ -57,9 +57,9 @@ def main() -> None:
     )
     parser.add_argument(
         "--accent",
-        default="gothic_kawaii_pink",
+        default="gothic_blood_rose",
         type=parse_color,
-        help="Accent colour (hex FF2A85 or preset: gothic_kawaii_pink, sweet_sakura, cyber_magenta, midnight_orchid)",
+        help="Accent colour (hex B81B34 or preset: gothic_blood_rose, cherry_rose, gothic_crimson, dark_ruby)",
     )
     parser.add_argument(
         "--tools",

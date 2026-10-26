@@ -1,14 +1,8 @@
 """Which colours the accent takes over, and what it turns them into.
 
 Spoti Mi repaints Spotify's brand green family (#1DB954, #1ED760, etc.)
-into a striking Gothic Kawaii Pink (#FF2A85), giving the app a unique
-dark anime / Kuromi aesthetic while preserving full contrast on OLED black.
-
-The rule maps colours in HSV space:
-* Any colour with a hue within 35 degrees of Spotify Green (141.2 deg)
-  that has enough saturation and value to not be grey/white/black.
-* It shifts the hue, saturation, and brightness by the exact delta between
-  Spotify Green and Gothic Kawaii Pink, so gradients and alpha stay smooth.
+into a deep Gothic Blood Rose (#B81B34) — rich crimson red without any neon,
+giving a dark gothic aesthetic while maintaining full contrast on OLED black.
 """
 
 from __future__ import annotations
@@ -19,17 +13,16 @@ from typing import Tuple
 # Spotify Green reference
 REFERENCE_HEX = 0x1DB954
 
-# Default target: Gothic Kawaii Pink (#FF2A85)
-DEFAULT_ACCENT_HEX = 0xFF2A85
+# Default target: Gothic Blood Rose / Deep Crimson Red (#B81B34) - non-neon, dark reddish
+DEFAULT_ACCENT_HEX = 0xB81B34
 
-# Alternative palettes
+# Palettes
 PALETTES = {
-    "gothic_kawaii_pink": 0xFF2A85,  # Kuromi / Dark Kawaii Hot Pink
-    "sweet_sakura": 0xFF70A6,        # Pastel Sakura Pink
-    "cyber_magenta": 0xE056FD,       # Cyberpunk Neon Magenta
-    "blood_rose": 0xE8175D,          # Gothic Crimson Rose
-    "midnight_orchid": 0xBD00FF,     # Dark Anime Violet
-    "spotify_green": 0x1DB954,       # Stock Green
+    "gothic_blood_rose": 0xB81B34,  # Deep Velvet Crimson Red (non-neon)
+    "cherry_rose": 0xC9184A,        # Dark Cherry Rose
+    "gothic_crimson": 0xD62246,     # Gothic Crimson
+    "dark_ruby": 0xA61C3C,          # Dark Ruby Wine
+    "spotify_green": 0x1DB954,      # Stock Green
 }
 
 # How far from the reference hue still counts as the same family (in degrees).
@@ -77,7 +70,7 @@ def captures(colour: int, reference: int = REFERENCE_HEX) -> bool:
 
 
 def map_colour(colour: int, reference: int = REFERENCE_HEX, target: int = DEFAULT_ACCENT_HEX) -> int:
-    """Maps a green-family colour into the target gothic kawaii pink."""
+    """Maps a green-family colour into the target gothic blood rose."""
     if not captures(colour, reference):
         return colour
 

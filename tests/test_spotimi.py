@@ -14,16 +14,16 @@ class TestPalette(unittest.TestCase):
         self.assertTrue(palette.captures(stock, palette.REFERENCE_HEX))
 
         mapped = palette.map_colour(stock, palette.REFERENCE_HEX, palette.DEFAULT_ACCENT_HEX)
-        # Should be Gothic Kawaii Pink #FF2A85
+        # Should be Gothic Blood Rose #B81B34 (Red=184, Green=27, Blue=52)
         alpha = (mapped >> 24) & 0xFF
         red = (mapped >> 16) & 0xFF
         green = (mapped >> 8) & 0xFF
         blue = mapped & 0xFF
 
         self.assertEqual(alpha, 0xFF)
-        self.assertEqual(red, 0xFF)
-        self.assertEqual(green, 0x2A)
-        self.assertEqual(blue, 0x85)
+        self.assertEqual(red, 0xB8)
+        self.assertEqual(green, 0x1B)
+        self.assertEqual(blue, 0x34)
 
     def test_neutrals_preserved(self):
         # Pure white, black, grey should not be repainted
@@ -40,7 +40,7 @@ class TestPalette(unittest.TestCase):
 
 class TestDexPatch(unittest.TestCase):
     def test_is_dex_interesting(self):
-        sample_dex = b"header...disallowSkippingNextReasons...tail"
+        sample_dex = b"header...Lcom/spotify/player/model/AutoValue_Restrictions;...tail"
         self.assertTrue(dexpatch.is_dex_interesting(sample_dex))
 
         boring_dex = b"header...nothing_relevant...tail"
@@ -48,17 +48,25 @@ class TestDexPatch(unittest.TestCase):
 
     def test_smali_rewrite(self):
         sample_smali = """
-.method public checkRestrictions()V
-    .registers 3
-    invoke-virtual {v0}, Lcom/spotify/player/model/Restrictions;->disallowSkippingNextReasons()Ljava/util/Set;
-    move-result-object v1
-    invoke-virtual {v0}, Lcom/spotify/player/model/Restrictions;->disallowSeekingReasons()Ljava/util/Set;
-    move-result-object v2
-    return-void
+.class public Lcom/spotify/player/model/AutoValue_Restrictions;
+.super Lcom/spotify/player/model/Restrictions;
+
+.method public disallowSkippingNextReasons()Lp/bg40;
+    .registers 2
+    iget-object v0, p0, Lcom/spotify/player/model/AutoValue_Restrictions;->disallowSkippingNextReasons:Lp/bg40;
+    return-object v0
+.end method
+
+.method public disallowSeekingReasons()Lp/bg40;
+    .registers 2
+    iget-object v0, p0, Lcom/spotify/player/model/AutoValue_Restrictions;->disallowSeekingReasons:Lp/bg40;
+    return-object v0
 .end method
 """
         with tempfile.TemporaryDirectory() as tmp:
-            fpath = os.path.join(tmp, "Test.smali")
+            pkg_dir = os.path.join(tmp, "com", "spotify", "player", "model")
+            os.makedirs(pkg_dir)
+            fpath = os.path.join(pkg_dir, "AutoValue_Restrictions.smali")
             with open(fpath, "w") as f:
                 f.write(sample_smali)
 
@@ -69,8 +77,7 @@ class TestDexPatch(unittest.TestCase):
             with open(fpath, "r") as f:
                 patched = f.read()
 
-            self.assertIn("Lmi/spotimi/PlayerHooks;->getDisallowSkippingNextReasons", patched)
-            self.assertIn("Lmi/spotimi/PlayerHooks;->getDisallowSeekingReasons", patched)
+            self.assertIn("sget-object v0, Lcom/spotify/player/model/Restrictions;->EMPTY", patched)
 
 
 class TestToolchainJava(unittest.TestCase):
