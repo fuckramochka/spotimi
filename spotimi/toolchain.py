@@ -80,12 +80,12 @@ class Toolchain:
         return "keytool"
 
     def _find_apksigner(self) -> Optional[str]:
+        candidates = glob.glob(os.path.expanduser("~/android-sdk/build-tools/*/lib/apksigner.jar"))
+        if candidates:
+            return sorted(candidates)[-1]
         found = shutil.which("apksigner")
         if found:
             return found
-        candidates = glob.glob(os.path.expanduser("~/android-sdk/build-tools/*/apksigner"))
-        if candidates:
-            return sorted(candidates)[-1]
         return None
 
     def _fetch(self, url: str, name: str) -> str:
@@ -206,15 +206,27 @@ class Toolchain:
             self._run(gen_cmd)
 
         if self._apksigner_bin and os.path.isfile(self._apksigner_bin):
-            sign_cmd = [
-                self._apksigner_bin,
-                "sign",
-                "--ks", keystore_path,
-                "--ks-pass", "pass:android",
-                "--ks-key-alias", "androiddebugkey",
-                "--key-pass", "pass:android",
-                apk_path,
-            ]
+            if self._apksigner_bin.endswith(".jar"):
+                sign_cmd = [
+                    self._java_bin,
+                    "-jar", self._apksigner_bin,
+                    "sign",
+                    "--ks", keystore_path,
+                    "--ks-pass", "pass:android",
+                    "--ks-key-alias", "androiddebugkey",
+                    "--key-pass", "pass:android",
+                    apk_path,
+                ]
+            else:
+                sign_cmd = [
+                    self._apksigner_bin,
+                    "sign",
+                    "--ks", keystore_path,
+                    "--ks-pass", "pass:android",
+                    "--ks-key-alias", "androiddebugkey",
+                    "--key-pass", "pass:android",
+                    apk_path,
+                ]
             self._run(sign_cmd)
         else:
             signer_jar = self.signer
@@ -232,7 +244,10 @@ class Toolchain:
             self._run(sign_cmd)
 
     def _run(self, cmd: List[str]) -> None:
-        res = subprocess.run(cmd, capture_output=True, text=True)
+        env = dict(os.environ)
+        java_dir = os.path.dirname(self._java_bin)
+        env["PATH"] = java_dir + os.pathsep + env.get("PATH", "")
+        res = subprocess.run(cmd, capture_output=True, text=True, env=env)
         if res.returncode != 0:
             sys.stderr.write(res.stdout + res.stderr)
             raise RuntimeError(f"Command failed: {os.path.basename(cmd[0])}")

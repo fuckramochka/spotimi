@@ -44,7 +44,7 @@ class Smali:
     def _run(self, main: str, args: List[str]) -> None:
         cmd = [self.java_bin, "-Xmx" + self.heap, "-cp", self.jar, main] + args
         res = subprocess.run(cmd, capture_output=True, text=True)
-        if res.returncode != 0:
+        if res.returncode != 0 or ("Error for input" in res.stderr):
             raise RuntimeError(f"{main} failed:\n{res.stdout}\n{res.stderr}")
 
     def disassemble(self, dex_path: str, out_dir: str) -> None:
@@ -173,7 +173,7 @@ def patch_smali_directory(smali_root: str) -> Dict[str, int]:
 
             if "->getBoolean(Ljava/lang/String;Z)Z" in modified:
                 modified, count = re_prod_bool.subn(
-                    f"invoke-static {{\\1, \\2, \\3}}, {HOOK_PRODUCT}->getBoolean(Ljava/lang/Object;Ljava/lang/String;Z)Z;",
+                    f"invoke-static {{\\1, \\2, \\3}}, {HOOK_PRODUCT}->getBoolean(Ljava/lang/Object;Ljava/lang/String;Z)Z",
                     modified,
                 )
                 stats["product_state_premium"] += count

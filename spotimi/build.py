@@ -52,13 +52,16 @@ def build(
     with tempfile.TemporaryDirectory(prefix="spotimi-build-") as work_dir:
         # 1. Unpack APK into memory / work streaming
         log("📦 Reading APK package entries...")
-        apk = Apk.open(apk_in)
+        apk = Apk(apk_in)
+        dropped = apk.drop_signature()
+        if dropped:
+            log(f"   • Removed original signatures ({len(dropped)} entries)")
 
         # 2. Accent Baking in ARSC and Vector Drawables
         log("🎨 Repainting Spotify Green -> Gothic Kawaii Pink in ARSC and XML drawables...")
         if "resources.arsc" in apk.names():
             arsc_data = apk.read("resources.arsc")
-            arsc = Arsc.parse(arsc_data)
+            arsc = Arsc(arsc_data)
             pairs: Dict[int, int] = {}
             reports = accent.bake(apk, arsc, old=palette.REFERENCE_HEX, new=accent_hex, pairs=pairs)
             for r in reports:
@@ -113,12 +116,17 @@ def build(
         new_dex_name = f"classes{next_dex_num}.dex" if next_dex_num > 1 else "classes.dex"
         log(f"➕ Appending Spoti Mi engine as {new_dex_name}...")
         with open(mod_dex, "rb") as f:
-            apk.replace(new_dex_name, f.read())
+            dex_data = f.read()
+        if apk.has(new_dex_name):
+            apk.replace(new_dex_name, dex_data)
+        else:
+            apk.add(new_dex_name, dex_data)
 
         # 7. Write out unaligned/aligned APK
         log(f"💾 Saving patched APK to: {apk_out}...")
         os.makedirs(os.path.dirname(os.path.abspath(apk_out)), exist_ok=True)
         apk.write(apk_out)
+        apk.close()
 
         # 8. Sign APK
         log("✍️  Signing APK with Android V2/V3 signature...")
