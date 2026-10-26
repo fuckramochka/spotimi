@@ -17,8 +17,10 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 import mi.spotimi.Palette;
 import mi.spotimi.SpotiMi;
+import mi.spotimi.Updater;
 
 /**
  * In-App Gothic Kawaii Settings Sheet.
@@ -40,7 +42,7 @@ public class SpotiMiSettingsSheet extends Dialog {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             window.setGravity(Gravity.BOTTOM);
             GradientDrawable bg = new GradientDrawable();
-            bg.setColor(0xFF141216); // Deep gothic black-rose background
+            bg.setColor(0xFF100F12); // Deep velvet dark background
             bg.setCornerRadii(new float[]{42, 42, 42, 42, 0, 0, 0, 0});
             window.setBackgroundDrawable(bg);
             window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
@@ -80,7 +82,7 @@ public class SpotiMiSettingsSheet extends Dialog {
 
         // Subtitle
         TextView sub = new TextView(ctx);
-        sub.setText("Gothic Kawaii Edition • v" + SpotiMi.VERSION);
+        sub.setText("Gothic Edition • v" + SpotiMi.VERSION + " • by fuckramochka");
         sub.setTextSize(12);
         sub.setTextColor(0xFF888888);
         LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(
@@ -94,33 +96,40 @@ public class SpotiMiSettingsSheet extends Dialog {
         LinearLayout content = new LinearLayout(ctx);
         content.setOrientation(LinearLayout.VERTICAL);
 
-        // Section: Core Features
-        addSectionHeader(content, "★ РЕЖИМИ ВІДТВОРЕННЯ");
+        // Section: Palette / Theme
+        addSectionHeader(content, "★ ПАЛІТРА ТА ТЕМА АКЦЕНТУ", accent);
+        addThemeSelector(content);
+        addToggle(content, "AMOLED Pure Black", "Глибокий чорний фон #000000 для економії заряду OLED", SpotiMi.KEY_AMOLED_BLACK, SpotiMi.isAmoledBlackEnabled());
+
+        // Section: Playback
+        addSectionHeader(content, "★ РЕЖИМИ ВІДТВОРЕННЯ", accent);
         addToggle(content, "Безлімітні пропуски", "Зняття обмеження 6 скіпів на годину", SpotiMi.KEY_UNLIMITED_SKIPS, SpotiMi.isUnlimitedSkipsEnabled());
-        addToggle(content, "On-Demand (Вибір треків)", "Вимкнення примусового Shuffle-only", SpotiMi.KEY_ON_DEMAND, SpotiMi.isOnDemandEnabled());
-        addToggle(content, "Перемотування (Seeking)", "Вільне пересування повзунка часу", SpotiMi.KEY_ALLOW_SEEK, SpotiMi.isSeekEnabled());
+        addToggle(content, "On-Demand (Вибір треків)", "Вільне відтворення будь-якого треку без Shuffle", SpotiMi.KEY_ON_DEMAND, SpotiMi.isOnDemandEnabled());
+        addToggle(content, "Перемотування (Seeking)", "Вільне пересування повзунка прогресу", SpotiMi.KEY_ALLOW_SEEK, SpotiMi.isSeekEnabled());
         addToggle(content, "Режим повтору", "Повтор окремого треку або всього списку", SpotiMi.KEY_ALLOW_REPEAT, SpotiMi.isRepeatEnabled());
 
-        addSectionHeader(content, "★ МЕДІА ТА БЛОКУВАННЯ");
+        // Section: Ads & Media
+        addSectionHeader(content, "★ БЛОКУВАННЯ ТА МЕДІА", accent);
         addToggle(content, "Блокування реклами", "Повне вирізання аудіо, відео та банерів", SpotiMi.KEY_BLOCK_ADS, SpotiMi.isAdBlockEnabled());
-        addToggle(content, "Canvas та Тексти (Lyrics)", "Увімкнення відео-заставок і тексту пісень", SpotiMi.KEY_CANVAS_LYRICS, SpotiMi.isCanvasLyricsEnabled());
-        addToggle(content, "Чистий інтерфейс", "Приховування кнопок «Купити Premium» та промо", SpotiMi.KEY_CLEAN_UI, SpotiMi.isCleanUiEnabled());
+        addToggle(content, "Canvas та Тексти (Lyrics)", "Синхронізовані тексти пісень та відео Canvas", SpotiMi.KEY_CANVAS_LYRICS, SpotiMi.isCanvasLyricsEnabled());
+        addToggle(content, "Чистий інтерфейс", "Приховування кнопок «Купити Premium» та промо-банерів", SpotiMi.KEY_CLEAN_UI, SpotiMi.isCleanUiEnabled());
 
-        addSectionHeader(content, "★ ПАЛІТРА АКЦЕНТУ");
-        addThemeSelector(content);
+        // Section: Updater
+        addSectionHeader(content, "★ ОНОВЛЕННЯ SPOTI MI", accent);
+        addUpdaterButton(content, accent);
 
         scroll.addView(content);
         root.addView(scroll, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(420)));
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(440)));
 
         return root;
     }
 
-    private void addSectionHeader(LinearLayout container, String text) {
+    private void addSectionHeader(LinearLayout container, String text, int accent) {
         TextView tv = new TextView(getContext());
         tv.setText(text);
         tv.setTextSize(11);
-        tv.setTextColor(0xFFFA58B6);
+        tv.setTextColor(accent);
         tv.setTypeface(null, android.graphics.Typeface.BOLD);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -175,9 +184,10 @@ public class SpotiMiSettingsSheet extends Dialog {
         paletteRow.setOrientation(LinearLayout.HORIZONTAL);
         paletteRow.setPadding(0, dp(8), 0, dp(8));
 
-        addThemeColorPill(paletteRow, "Gothic Kawaii Pink", SpotiMi.COLOR_GOTHIC_KAWAII_PINK);
+        addThemeColorPill(paletteRow, "Blood Rose", SpotiMi.COLOR_GOTHIC_BLOOD_ROSE);
         addThemeColorPill(paletteRow, "Sweet Sakura", SpotiMi.COLOR_SWEET_SAKURA);
         addThemeColorPill(paletteRow, "Cyber Magenta", SpotiMi.COLOR_CYBER_MAGENTA);
+        addThemeColorPill(paletteRow, "Dark Ruby", SpotiMi.COLOR_DARK_RUBY);
         addThemeColorPill(paletteRow, "Spotify Green", SpotiMi.COLOR_SPOTIFY_GREEN);
 
         hscroll.addView(paletteRow);
@@ -190,11 +200,11 @@ public class SpotiMiSettingsSheet extends Dialog {
         pill.setText(name);
         pill.setTextSize(12);
         pill.setTextColor(0xFFFFFFFF);
-        pill.setPadding(dp(12), dp(6), dp(12), dp(6));
+        pill.setPadding(dp(14), dp(8), dp(14), dp(8));
 
         GradientDrawable gd = new GradientDrawable();
         gd.setColor(color);
-        gd.setCornerRadius(dp(16));
+        gd.setCornerRadius(dp(18));
         pill.setBackground(gd);
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -206,11 +216,43 @@ public class SpotiMiSettingsSheet extends Dialog {
             @Override
             public void onClick(View v) {
                 SpotiMi.setAccentColor(color);
+                Toast.makeText(getContext(), "★ Тема акценту: " + name + " збережена!", Toast.LENGTH_SHORT).show();
                 dismiss();
             }
         });
 
         row.addView(pill);
+    }
+
+    private void addUpdaterButton(LinearLayout container, int accent) {
+        Context ctx = getContext();
+        TextView btn = new TextView(ctx);
+        btn.setText("Перевірити оновлення Spoti Mi");
+        btn.setTextSize(14);
+        btn.setTextColor(0xFFFFFFFF);
+        btn.setGravity(Gravity.CENTER);
+        btn.setPadding(dp(16), dp(12), dp(16), dp(12));
+
+        GradientDrawable gd = new GradientDrawable();
+        gd.setColor(accent);
+        gd.setCornerRadius(dp(22));
+        btn.setBackground(gd);
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = dp(10);
+        lp.bottomMargin = dp(14);
+        btn.setLayoutParams(lp);
+
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getContext(), "Перевіряємо релізи GitHub...", Toast.LENGTH_SHORT).show();
+                Updater.check(getContext(), true);
+            }
+        });
+
+        container.addView(btn);
     }
 
     private int dp(int value) {

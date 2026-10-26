@@ -1,8 +1,10 @@
 """Bytecode patcher for Spoti Mi.
 
-Applies surgical, targeted patches to Spotify's Player Restrictions without touching
-Android framework classes or BaseBundle/SharedPreferences, guaranteeing complete
-stability with zero startup crashes.
+Applies surgical, targeted patches to:
+1. com.spotify.player.model.AutoValue_Restrictions:
+   Unlocks unlimited skips, on-demand playback, seeking, and repeat context.
+2. com.spotify.music.SpotifyMainActivity:
+   Injects SpotiMi.onActivityCreate(activity) to hook updater, gestures, and settings.
 """
 
 from __future__ import annotations
@@ -55,46 +57,58 @@ class Smali:
 
 
 def is_dex_interesting(dex_bytes: bytes) -> bool:
-    """Checks if this DEX defines AutoValue_Restrictions."""
+    """Checks if this DEX defines AutoValue_Restrictions and SpotifyMainActivity (classes2.dex)."""
     return b"Lcom/spotify/player/model/AutoValue_Restrictions;" in dex_bytes
 
 
 def patch_smali_directory(smali_root: str) -> Dict[str, int]:
-    """Patches AutoValue_Restrictions methods to always return Restrictions.EMPTY reasons."""
+    """Patches AutoValue_Restrictions methods and hooks SpotifyMainActivity."""
     stats = {
         "unlimited_skips": 0,
         "on_demand_seeking": 0,
-        "product_state_premium": 0,
-        "ad_blocking": 0,
-        "startup_init": 0,
+        "main_activity_hook": 0,
     }
 
-    target_file = os.path.join(smali_root, "com", "spotify", "player", "model", "AutoValue_Restrictions.smali")
-    if not os.path.isfile(target_file):
-        return stats
+    # 1. Patch AutoValue_Restrictions
+    restr_file = os.path.join(smali_root, "com", "spotify", "player", "model", "AutoValue_Restrictions.smali")
+    if os.path.isfile(restr_file):
+        with open(restr_file, "r", encoding="utf-8") as f:
+            content = f.read()
 
-    with open(target_file, "r", encoding="utf-8") as f:
-        content = f.read()
+        modified = content
+        for method in RESTRICTION_METHODS:
+            pattern = re.compile(
+                r"(\.method public " + method + r"\(\)Lp/bg40;[\s\S]*?)iget-object v0, p0, Lcom/spotify/player/model/AutoValue_Restrictions;->" + method + r":Lp/bg40;([\s\S]*?return-object v0\n\.end method)"
+            )
+            replacement = (
+                r"\1sget-object v0, Lcom/spotify/player/model/Restrictions;->EMPTY:Lcom/spotify/player/model/Restrictions;\n"
+                r"    check-cast v0, Lcom/spotify/player/model/AutoValue_Restrictions;\n"
+                r"    iget-object v0, v0, Lcom/spotify/player/model/AutoValue_Restrictions;->" + method + r":Lp/bg40;\2"
+            )
+            modified, count = pattern.subn(replacement, modified)
+            if count > 0:
+                if "Skipping" in method:
+                    stats["unlimited_skips"] += count
+                else:
+                    stats["on_demand_seeking"] += count
 
-    modified = content
-    for method in RESTRICTION_METHODS:
-        pattern = re.compile(
-            r"(\.method public " + method + r"\(\)Lp/bg40;[\s\S]*?)iget-object v0, p0, Lcom/spotify/player/model/AutoValue_Restrictions;->" + method + r":Lp/bg40;([\s\S]*?return-object v0\n\.end method)"
-        )
-        replacement = (
-            r"\1sget-object v0, Lcom/spotify/player/model/Restrictions;->EMPTY:Lcom/spotify/player/model/Restrictions;\n"
-            r"    check-cast v0, Lcom/spotify/player/model/AutoValue_Restrictions;\n"
-            r"    iget-object v0, v0, Lcom/spotify/player/model/AutoValue_Restrictions;->" + method + r":Lp/bg40;\2"
-        )
-        modified, count = pattern.subn(replacement, modified)
-        if count > 0:
-            if "Skipping" in method:
-                stats["unlimited_skips"] += count
-            else:
-                stats["on_demand_seeking"] += count
+        if modified != content:
+            with open(restr_file, "w", encoding="utf-8") as f:
+                f.write(modified)
 
-    if modified != content:
-        with open(target_file, "w", encoding="utf-8") as f:
-            f.write(modified)
+    # 2. Patch SpotifyMainActivity.onCreate
+    main_file = os.path.join(smali_root, "com", "spotify", "music", "SpotifyMainActivity.smali")
+    if os.path.isfile(main_file):
+        with open(main_file, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        pattern = re.compile(r"(\.method public final onCreate\(Landroid/os/Bundle;\)V\s*\.registers \d+)")
+        if pattern.search(content):
+            replacement = r"\1\n\n    invoke-static {p0}, Lmi/spotimi/SpotiMi;->onActivityCreate(Landroid/app/Activity;)V\n"
+            new_content = pattern.sub(replacement, content, count=1)
+            if new_content != content:
+                with open(main_file, "w", encoding="utf-8") as f:
+                    f.write(new_content)
+                stats["main_activity_hook"] += 1
 
     return stats

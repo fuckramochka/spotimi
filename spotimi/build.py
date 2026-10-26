@@ -1,11 +1,12 @@
 """The Spoti Mi build engine.
 
-Orchestrates the transformation of an official Spotify APK into Spoti Mi:
-1. Fast streaming zip inspection
-2. Baking Gothic Kawaii Pink (#FF2A85) into resources.arsc and binary XMLs
-3. Compiling Java injected mod classes to DEX via D8
-4. Surgical bytecode patching of DEX files with Baksmali/Smali
-5. Injecting classes.dex and signing with debug keystore
+Orchestrates the complete transformation of an official Spotify APK into Spoti Mi:
+1. Fast streaming zip inspection & signature stripping
+2. Baking Gothic Accent into resources.arsc, AXML drawables, Lottie JSON, and PNGs
+3. Full Dalvik/Compose token & hex string recoloring across all DEX files
+4. Compiling injected Java mod classes (Updater, Settings, Hooks) to DEX via D8
+5. Surgical bytecode patching of classes2.dex (Player Restrictions & MainActivity hook)
+6. Repackaging and signing with Android V2/V3 signature
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ import tempfile
 import time
 from typing import Dict, List, Optional
 
-from . import accent, dexpatch, palette
+from . import accent, dexpatch, dexrecolour, palette
 from .apkzip import Apk
 from .arsc import Arsc
 from .toolchain import Toolchain
@@ -37,14 +38,14 @@ def build(
             print(msg)
 
     log(f"\n🌸 [Spoti Mi] Starting build from: {os.path.basename(apk_in)}")
-    log(f"   Target accent: #{accent_hex:06X} (Gothic Kawaii Pink)")
+    log(f"   Target accent: #{accent_hex:06X} (Gothic Blood Rose)")
 
     if not os.path.isfile(apk_in):
         raise FileNotFoundError(f"Input APK not found: {apk_in}")
 
     toolchain = Toolchain(tools_dir, quiet=quiet)
     smali_tool = dexpatch.Smali(
-        jar=os.path.join(tools_dir, "smali.jar"),
+        jar=os.path.abspath(os.path.join(tools_dir, "smali.jar")),
         api=26,
         java_bin=toolchain._java_bin,
     )
@@ -57,8 +58,8 @@ def build(
         if dropped:
             log(f"   • Removed original signatures ({len(dropped)} entries)")
 
-        # 2. Accent Baking in ARSC and Vector Drawables
-        log("🎨 Repainting Spotify Green -> Gothic Kawaii Pink in ARSC and XML drawables...")
+        # 2. Accent Baking in ARSC, AXML, Lottie JSON, and PNG drawables
+        log("🎨 Repainting Spotify Green -> Gothic Accent in ARSC, XML, Lottie, and PNGs...")
         if "resources.arsc" in apk.names():
             arsc_data = apk.read("resources.arsc")
             arsc = Arsc(arsc_data)
@@ -68,16 +69,40 @@ def build(
                 log(f"   • {r}")
             apk.replace("resources.arsc", arsc.build())
 
-        # 3. Find all DEX files in the APK
+        # 3. Find all DEX files in original APK
         dex_names = sorted([n for n in apk.names() if n.startswith("classes") and n.endswith(".dex")])
         log(f"🔍 Inspecting {len(dex_names)} DEX files in original APK")
 
-        # 4. Patch target DEX files (classes2.dex for AutoValue_Restrictions)
-        patched_count = 0
+        # 4. Full Dalvik/Compose token & hex string recoloring across all DEX files
+        log("🔮 Scanning and recoloring Dalvik bytecode tokens & Jetpack Compose constants...")
+        total_dex_recoloured = 0
+        for dname in dex_names:
+            dex_bytes = apk.read(dname)
+            new_dex, rec_count = dexrecolour.recolour_dex_bytes(
+                dex_bytes, old_hex=palette.REFERENCE_HEX, new_hex=accent_hex
+            )
+            if rec_count > 0:
+                apk.replace(dname, new_dex)
+                total_dex_recoloured += rec_count
+        log(f"   • Replaced {total_dex_recoloured} Dalvik/Compose green tokens across DEX files")
+
+        # 5. Compile injected Java classes into a new DEX file
+        inject_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "inject", "java")
+        java_sources = glob.glob(os.path.join(inject_dir, "**", "*.java"), recursive=True)
+        if java_sources:
+            log(f"☕ Compiling {len(java_sources)} injected Spoti Mi Java sources...")
+            mod_dex_path = toolchain.compile_java_to_dex(java_sources, work_dir)
+            next_idx = len(dex_names) + 1
+            mod_dex_name = f"classes{next_idx}.dex"
+            with open(mod_dex_path, "rb") as f:
+                apk.add(mod_dex_name, f.read())
+            log(f"   • Injected mod DEX as {mod_dex_name} ({os.path.getsize(mod_dex_path)} bytes)")
+
+        # 6. Surgical Smali patch for classes2.dex (Restrictions + MainActivity hook)
         for dname in dex_names:
             dex_bytes = apk.read(dname)
             if dexpatch.is_dex_interesting(dex_bytes):
-                log(f"   🔧 Disassembling and patching {dname} (AutoValue_Restrictions)...")
+                log(f"   🔧 Disassembling and patching {dname} (AutoValue_Restrictions & MainActivity)...")
                 dex_file = os.path.join(work_dir, dname)
                 with open(dex_file, "wb") as f:
                     f.write(dex_bytes)
@@ -88,21 +113,20 @@ def build(
                 stats = dexpatch.patch_smali_directory(smali_dir)
                 total_patches = sum(stats.values())
                 if total_patches > 0:
-                    log(f"      - Skips: {stats['unlimited_skips']}, Seek/Repeat/On-Demand: {stats['on_demand_seeking']}")
+                    log(f"      - Skips: {stats['unlimited_skips']}, Seek/Repeat/On-Demand: {stats['on_demand_seeking']}, MainActivity hook: {stats['main_activity_hook']}")
                     smali_tool.assemble(smali_dir, dex_file)
                     with open(dex_file, "rb") as f:
                         apk.replace(dname, f.read())
-                    patched_count += 1
                 else:
                     log("      - No rewrite points in this DEX, skipping assembly")
 
-        # 5. Write out patched APK
+        # 7. Write out patched APK
         log(f"💾 Saving patched APK to: {apk_out}...")
         os.makedirs(os.path.dirname(os.path.abspath(apk_out)), exist_ok=True)
         apk.write(apk_out)
         apk.close()
 
-        # 8. Sign APK
+        # 8. Sign APK with Android V2/V3 signatures
         log("✍️  Signing APK with Android V2/V3 signature...")
         toolchain.sign(apk_out)
 

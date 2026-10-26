@@ -97,5 +97,31 @@ class TestToolchainJava(unittest.TestCase):
             self.assertTrue(os.path.getsize(dex_path) > 1000)
 
 
+class TestDexRecolour(unittest.TestCase):
+    def test_recolour_dex_literals_and_strings(self):
+        from spotimi.dexrecolour import recolour_dex_bytes, fix_dex_checksums
+        import struct
+
+        # Create dummy DEX header (112 bytes) + bytecode
+        header = bytearray(112)
+        header[0:8] = b"dex\n039\x00"
+
+        # Bytecode with const v0, 0xff1db954 (14 00 54 b9 1d ff)
+        # and const-wide/32 v1, 0xff1ed760 (18 01 60 d7 1e ff)
+        # and raw string "1ED760"
+        payload = bytearray()
+        payload += b"\x14\x00\x54\xb9\x1d\xff"
+        payload += b"\x18\x01\x60\xd7\x1e\xff"
+        payload += b"Hello 1ED760 World"
+
+        full_dex = fix_dex_checksums(header + payload)
+        recoloured, count = recolour_dex_bytes(full_dex)
+
+        self.assertGreaterEqual(count, 3)
+        self.assertNotIn(b"\x54\xb9\x1d\xff", recoloured)
+        self.assertNotIn(b"\x60\xd7\x1e\xff", recoloured)
+        self.assertNotIn(b"1ED760", recoloured)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,9 @@
+{
+  "_comment": "Spoti Mi official update endpoint. Checked on startup and via Spoti Mi Settings.",
+  "version": "1.0.1",
+  "version_code": 101,
+  "url": "https://github.com/fuckramochka/spotimi/releases/download/v1.0.1/SpotiMi.apk",
+  "notes": "• Complete green eradication across all Jetpack Compose UI and DEX bytecode\n• Spoti Mi Settings Sheet with live theme picker (Gothic Blood Rose, Sweet Sakura, Cyber Magenta, Dark Ruby)\n• In-app GitHub Auto-Updater with one-tap install\n• AMOLED Pure Black Mode (#000000)\n• Unlimited skips and On-Demand track playback",
+  "notes_uk": "• Повне випалювання залишків зеленого кольору в Jetpack Compose та байткоді DEX\n• Меню налаштувань Spoti Mi з вибором акценту кольору в реальному часі\n• Вбудоване автооновлення з релізів GitHub\n• AMOLED Pure Black режим (#000000)\n• Безлімітні скіпи та вільний вибір пісень",
+  "notes_ru": "• Полное удаление зелёного цвета в Jetpack Compose и байткоде DEX\n• Меню настроек Spoti Mi с выбором цвета акцента на лету\n• Встроенное автообновление из релизов GitHub\n• AMOLED Pure Black режим (#000000)\n• Безлимитные скипы и свободный выбор треков"
+}

@@ -1,13 +1,14 @@
 <div align="center">
 
-# 🌸 Spoti Mi (Gothic Kawaii Edition) 🌸
+# 🥀 Spoti Mi (Gothic Edition) 🥀
 
-### *Spotify, but make it kawaii, dark & unrestricted.*
+### *Spotify, but make it dark, blood rose & unrestricted.*
 
-[![Ecosystem](https://img.shields.io/badge/Ecosystem-TikTok%20Mi%20%26%20Amegram-FF2A85?style=for-the-badge)](https://github.com/fuckramochka)
+[![Ecosystem](https://img.shields.io/badge/Ecosystem-TikTok%20Mi%20%26%20Amegram-B81B34?style=for-the-badge)](https://github.com/fuckramochka)
 [![License](https://img.shields.io/badge/License-MIT-9D4EDD?style=for-the-badge)](LICENSE)
-[![Theme](https://img.shields.io/badge/Theme-Gothic%20Kawaii%20Pink-FF2A85?style=for-the-badge)](#-готично-кавайна-палітра)
-[![Architecture](https://img.shields.io/badge/Engine-Pure%20DEX%20%26%20ARSC%20Patcher-00F0FF?style=for-the-badge)](#-архітектура-мода)
+[![Theme](https://img.shields.io/badge/Theme-Gothic%20Blood%20Rose-B81B34?style=for-the-badge)](#-готична-палітра)
+[![Auto-Updater](https://img.shields.io/badge/Updater-GitHub%20Releases-00F0FF?style=for-the-badge)](#-вбудоване-автооновлення)
+[![Architecture](https://img.shields.io/badge/Engine-Pure%20DEX%20%26%20ARSC%20Patcher-FF70A6?style=for-the-badge)](#-архітектура-мода)
 
 </div>
 
@@ -15,11 +16,11 @@
 
 ## 🖤 Огляд / Про проєкт
 
-**Spoti Mi** — це модифікація Spotify для Android, створена в рамках екосистеми **TikTok Mi** та **Amegram**. Мод повністю позбавляє мобільний клієнт штучних обмежень безкоштовного тарифу та перевдягає фірмовий нудний зелений колір Spotify у стильний **Gothic Kawaii Pink** (неоново-рожевий акцент у темній Kuromi-естетиці).
+**Spoti Mi** — це модифікація Spotify для Android, створена в рамках екосистеми **TikTok Mi** та **Amegram**. Мод повністю позбавляє мобільний клієнт штучних обмежень безкоштовного тарифу, повністю випалює залишки зеленого кольору Spotify у вишуканий **Gothic Blood Rose** (оксамитово-кривавий акцент) та додає зручне меню налаштувань і автооновлення з GitHub прямо в додатку.
 
 ---
 
-## 🎀 Що вміє Spoti Mi
+## 🎀 Можливості Spoti Mi
 
 | Функція | Spotify Free | Spoti Mi |
 | :--- | :---: | :---: |
@@ -29,42 +30,40 @@
 | **Перемотування (Scrubbing)** | Заблоковано на мобільних | **Вільне перемотування повзунком часу** |
 | **Режим повтору (Repeat)** | Вимкнено | **Повтор одного треку або всього списку** |
 | **Canvas & Тексти (Lyrics)** | Обмежено або вимкнено | **Розблоковано на всіх підтримуваних треках** |
-| **Інтерфейс** | Настирливі банери «Купити Premium» | **Чистий мінімалістичний UI без апселів** |
-| **Колір теми** | Стандартний зелений (`#1DB954`) | **Gothic Kawaii Pink (`#FF2A85`)** |
+| **Чистий інтерфейс** | Настирливі банери «Купити Premium» | **Чистий мінімалістичний UI без апселів** |
+| **AMOLED Pure Black** | Темно-сірий фон `#121212` | **100% чорний `#000000` для економії OLED** |
+| **Вибір палітри в додатку** | Тільки зелений (`#1DB954`) | **Blood Rose, Sakura, Cyber Magenta, Ruby** |
+| **Автооновлення** | Лише Google Play | **Вбудований Updater з релізів GitHub** |
 
 > [!NOTE]
-> **Серверні функції:** Офлайн-кешування треків та стримінг на 320 kbps шифруються на серверах Spotify через DRM (Widevine) і недоступні без платної підписки. Усі клієнтські можливості Spoti Mi розблоковує на 100%.
+> **Серверні функції:** Офлайн-кешування треків та стримінг на 320 kbps шифруються на серверах Spotify через DRM (Widevine) і недоступні без серверного ключа. Усі клієнтські можливості Spoti Mi розблоковує на 100%.
 
 ---
 
-## 🎨 Готично-кавайна палітра
+## 🎨 100% Випалювання зеленого кольору
 
-Замість токсично-зеленого кольору, Spoti Mi використовує математичне перенесення в просторі HSV:
-* **Gothic Kawaii Pink (`#FF2A85`)**: Неоновий рожевий акцент для кнопок Play, повзунка SeekBar, активних вкладок і перемикачів.
-* **Глибокий OLED-фон (`#121212` / `#141216`)**: Зберігає максимальну контрастність і заощаджує батарею на AMOLED-екранах.
-* **Збереження градієнтів та прозорості**: Усі відтінки та альфа-канали вихідної графіки Spotify конвертуються пропорційно.
-
-Вбудовані альтернативні палітри:
-* `gothic_kawaii_pink` — `#FF2A85` (за замовчуванням)
-* `sweet_sakura` — `#FF70A6`
-* `cyber_magenta` — `#E056FD`
-* `midnight_orchid` — `#BD00FF`
-* `blood_rose` — `#E8175D`
+На відміну від звичайних тем, Spoti Mi перефарбовує Spotify **на всіх рівнях**:
+1. **DEX Bytecode & Jetpack Compose**: Заміна 280+ захардкодzoneних 32-бітних і 64-бітних колірних токенів Spotify Encore (`0xFF1ED760`, `0xFF1DB954`, тощо) у Dalvik-байткоді з автоматичним перерахунком SHA-1 та Adler32 чексум.
+2. **ARSC & AXML**: Математичне HSV-перенесення кольорів у скомпільованих ресурсах і векторних XML.
+3. **Lottie Animations & PNG Drawables**: Перефарбування анімації відтворення `play_indicator_paused.json` та растрових іконок плеєра.
 
 ---
 
-## ⚙️ Архітектура мода
+## ⚡ Меню налаштувань Spoti Mi
 
-Spoti Mi побудований за принципом швидкого хірургічного патчингу (без повного декомпілювання та перескладання 200 МБ ресурсів через стандартний `apktool`):
+* **Як відкрити меню:** Натисніть **3 пальцями одночасно** на будь-якому екрані додатка.
+* Знизу плавно з'явиться шторка **Spoti Mi Settings**, де можна:
+  - Змінити колірний акцент на льоту (Blood Rose, Sweet Sakura, Cyber Magenta, Dark Ruby, Spotify Green).
+  - Увімкнути / вимкнути AMOLED Pure Black.
+  - Налаштувати тумблери пропусків, On-Demand та блокування реклами.
+  - Натиснути кнопку «Перевірити оновлення Spoti Mi».
 
-1. **ARSC & AXML Rewriter (`spotimi/accent.py`, `arsc.py`, `axml.py`)**:
-   * Напряму редагує таблицю ресурсів `resources.arsc` та скомпільовані векторні XML-файли `res/**/*.xml`, підміняючи байти кольорів у форматі `Res_value`.
-2. **Surgical Bytecode Patching (`spotimi/dexpatch.py`)**:
-   * Сканує файли DEX лише на наявність сигнатур `PlayerRestrictions`, `ProductState`, `AdManager` та `MainActivity`.
-   * Перенаправляє виклики методів обмежень на `mi.spotimi.PlayerHooks` та `mi.spotimi.ProductStateHooks`.
-3. **Injected Runtime Engine (`inject/java/mi/spotimi/`)**:
-   * Власний модуль `classes.dex`, скомпільований через Google R8/D8 з мінімальним оверхедом.
-   * Містить панель налаштувань `SpotiMiSettingsSheet`, логіку блокування реклами та підміну прапорців.
+---
+
+## 🔄 Вбудоване автооновлення
+
+* Додаток перевіряє актуальну версію через `version.json` у репозиторії на GitHub.
+* При виході нового релізу з'являється стильний діалог із описом змін (Changelog) та кнопкою оновлення в один дотик через `DownloadManager`.
 
 ---
 
@@ -78,14 +77,14 @@ Spoti Mi побудований за принципом швидкого хір�
 ### Збірка в одну команду:
 
 ```bash
-# Базова збірка з Gothic Kawaii Pink:
+# Базова збірка з Gothic Blood Rose (#B81B34):
 ./build.sh path/to/spotify.apk
 
 # Збірка з вибором іншої палітри:
-./build.sh path/to/spotify.apk --accent cyber_magenta
+./build.sh path/to/spotify.apk --accent cherry_rose
 
 # Вказати свій шлях для збереження готового APK:
-./build.sh path/to/spotify.apk -o dist/SpotiMi_v1.0.apk
+./build.sh path/to/spotify.apk -o dist/SpotiMi_v1.0.1.apk
 ```
 
 Готовий APK буде автоматично підписаний V2/V3 підписом і готовий до встановлення на будь-який Android без Root-прав!
@@ -101,5 +100,5 @@ PYTHONPATH=. python3 -m unittest discover tests/
 ---
 
 <div align="center">
-Made with 💖 by the team behind <b>TikTok Mi</b> & <b>Amegram</b>.
+Made with 🖤 by <b>fuckramochka</b> (creator of <b>TikTok Mi</b> & <b>Amegram</b>).
 </div>
